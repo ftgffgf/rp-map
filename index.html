@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интерактивная карта RP-проекта</title>
+    <!-- Подключаем стили Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com" />
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: #1a1d24;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+        }
+        #map {
+            width: 100%;
+            height: 100%;
+            background: #14171c;
+        }
+        /* Панель подсказки для админа */
+        .admin-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(20, 23, 28, 0.9);
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid #3a414e;
+            font-size: 13px;
+            max-width: 320px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .admin-panel code {
+            background: #2b313c;
+            padding: 2px 5px;
+            border-radius: 4px;
+            color: #4dabf7;
+        }
+        /* Стили всплывающих окон */
+        .leaflet-popup-content-wrapper {
+            background: #22262f;
+            color: #fff;
+            border-radius: 8px;
+            border: 1px solid #3d4452;
+        }
+        .leaflet-popup-tip {
+            background: #22262f;
+        }
+        .popup-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #4dabf7;
+        }
+        .popup-desc {
+            font-size: 13px;
+            line-height: 1.4;
+            color: #d0d7de;
+        }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<!-- Панель для настройки координат (можно удалить перед публикацией для игроков) -->
+<div class="admin-panel">
+    <b>🛠 Режим настройки (для админа):</b><br>
+    Кликни в любое место карты, чтобы скопировать координаты <code>[Y, X]</code> для добавления новой метки.
+    <div id="coords-output" style="margin-top: 6px; color: #51cf66; font-weight: bold;"></div>
+</div>
+
+<!-- Подключаем скрипт Leaflet -->
+<script src="https://unpkg.com"></script>
+<script>
+    // 1. Инициализация карты с плоской системой координат (CRS.Simple)
+    const map = L.map('map', {
+        crs: L.CRS.Simple,
+        minZoom: -1,
+        maxZoom: 3
+    });
+
+    // Размеры изображения (подогнаны под пропорции твоего скриншота)
+    const imageWidth = 1024;
+    const imageHeight = 683;
+    const bounds = [[0, 0], [imageHeight, imageWidth]];
+
+    // 2. Накладываем твой скриншот (убедись, что имя файла совпадает!)
+    const image = L.imageOverlay('map.png', bounds).addTo(map);
+    map.fitBounds(bounds);
+
+    // 3. Создаем слои (категории) для фильтров в правом верхнем углу
+    const layers = {
+        "⛽ АЗС и Сервисы": L.layerGroup().addTo(map),
+        "🏢 Гос. структуры и Базы": L.layerGroup().addTo(map),
+        "🏁 Работы и Активности": L.layerGroup().addTo(map)
+    };
+
+    // Функция для создания красивых цветных иконок
+    function createCustomIcon(emoji, bgColor) {
+        return L.divIcon({
+            className: 'custom-pin',
+            html: `<div style="
+                background-color: ${bgColor};
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 2px solid white;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+                font-size: 15px;
+            ">${emoji}</div>`,
+            iconSize:,
+            iconAnchor:,
+            popupAnchor: [0, -15]
+        });
+    }
+
+    // 4. СПИСОК ТОЧЕК НА КАРТЕ (Редактируй названия, описания и координаты здесь!)
+    // Координаты идут в формате [Y, X], где [0, 0] — левый нижний угол
+    const locations = [
+        {
+            coords:,
+            title: "Северная АЗС",
+            desc: "Заправка топлива и мелкий ремонт. Рядом находится промзона.",
+            category: "⛽ АЗС и Сервисы",
+            icon: createCustomIcon("⛽", "#e67700")
+        },
+        {
+            coords:,
+            title: "Центральная АЗС",
+            desc: "Главная заправка в центре карты. Удобный выезд на все трассы.",
+            category: "⛽ АЗС и Сервисы",
+            icon: createCustomIcon("⛽", "#e67700")
+        },
+        {
+            coords:,
+            title: "Главный Гараж / Автосервис",
+            desc: "Тюнинг-ателье, покраска и спавн личного транспорта игроков.",
+            category: "⛽ АЗС и Сервисы",
+            icon: createCustomIcon("🔧", "#1c7ed6")
+        },
+        {
+            coords:,
+            title: "Южный КПП / Полиция",
+            desc: "Пост ДПС и стоянка служебного транспорта на южном въезде.",
+            category: "🏢 Гос. структуры и Базы",
+            icon: createCustomIcon("🚓", "#1c7ed6")
+        },
+        {
+            coords:,
+            title: "Восточный Терминал",
+            desc: "База дальнобойщиков и погрузки контейнеров.",
+            category: "🏢 Гос. структуры и Базы",
+            icon: createCustomIcon("🚛", "#1c7ed6")
+        },
+        {
+            coords:,
+            title: "Складской комплекс",
+            desc: "Работа грузчиком или развозчиком товаров по точкам.",
+            category: "🏁 Работы и Активности",
+            icon: createCustomIcon("📦", "#2b8a3e")
+        },
+        {
+            coords:,
+            title: "Гоночный трек (Асфальт)",
+            desc: "Закрытая трасса для проведения легальных заездов и дрифта.",
+            category: "🏁 Работы и Активности",
+            icon: createCustomIcon("🏁", "#2b8a3e")
+        },
+        {
+            coords:,
+            title: "Карьер / Стройка",
+            desc: "Зона работы на спецтехнике и внедорожниках.",
+            category: "🏁 Работы и Активности",
+            icon: createCustomIcon("🚧", "#d9480f")
+        }
+    ];
+
+    // Добавляем все точки на карту
+    locations.forEach(loc => {
+        L.marker(loc.coords, { icon: loc.icon })
+            .bindPopup(`<div class="popup-title">${loc.title}</div><div class="popup-desc">${loc.desc}</div>`)
+            .addTo(layers[loc.category]);
+    });
+
+    // Добавляем меню переключения слоев в правый верхний угол
+    L.control.layers(null, layers, { collapsed: false }).addTo(map);
+
+    // 5. Инструмент для удобного получения координат при клике
+    map.on('click', function(e) {
+        const y = Math.round(e.latlng.lat);
+        const x = Math.round(e.latlng.lng);
+        const coordText = `[${y}, ${x}]`;
+        
+        document.getElementById('coords-output').innerText = `Скопировано: ${coordText}`;
+        navigator.clipboard.writeText(coordText).catch(() => {});
+    });
+</script>
+
+</body>
+</html>
