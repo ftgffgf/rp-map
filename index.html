@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Интерактивная карта RP-проекта</title>
-    <link rel="stylesheet" href="https://unpkg.com" />
+    <link rel="stylesheet" href="https://jsdelivr.net" />
     <style>
         body, html {
             margin: 0;
@@ -64,7 +64,7 @@
     <div id="coords-output" style="margin-top: 6px; color: #51cf66; font-weight: bold;"></div>
 </div>
 
-<script src="https://unpkg.com"></script>
+<script src="https://jsdelivr.net"></script>
 <script>
     const map = L.map('map', {
         crs: L.CRS.Simple,
@@ -182,10 +182,6 @@
         navigator.clipboard.writeText(coordText).catch(() => {});
     });
 </script>
-
-</body>
-</html>
-
 
 </body>
 </html>
